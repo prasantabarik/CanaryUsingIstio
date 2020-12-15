@@ -1,0 +1,12 @@
+app:
+  name: store-supplier-service
+  group: store-supplier-service
+  namespace: dev
+  replicaCount: 1
+  container:
+    image: prasantabarik/store-supplier-service:12
+    port: 8096
+  service:
+    type: ClusterIP
+    port: 8096
+  version: v1

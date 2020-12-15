@@ -1,0 +1,256 @@
+jobs:
+- job: DeployToAKS
+  pool:
+   vmImage: 'ubuntu-16.04'
+
+  steps:
+    - task: DownloadBuildArtifacts@0
+      displayName: 'Download commerce mvp helm chart artifact'
+      inputs:
+        buildType: 'specific'
+        project: 'CommerceMVP'
+        pipeline: 'commerce-mvp-helm-istio-canary'
+        artifactName: 'CommerceMVP-commerce-mvp-helm-istio-canary'
+        downloadPath: $(System.DefaultWorkingDirectory)
+        buildVersionToDownload: 'latest'
+    - task: ExtractFiles@1
+      displayName: 'Unzip helm artifact artifact'
+      inputs:
+       archiveFilePatterns: 'CommerceMVP-commerce-mvp-helm-istio-canary/*.zip'
+       destinationFolder: 'helmcharts'
+       cleanDestinationFolder: true
+
+    # - task: HelmDeploy@0
+    #   displayName: 'helm upgrade offer-validator'
+    #   inputs:
+    #       connectionType: 'Kubernetes Service Connection'
+    #       kubernetesServiceConnection: 'com-mvp-aks'
+    #       command: upgrade
+    #       chartType: FilePath
+    #       chartPath: helmcharts/s/app
+    #       releaseName: 'offer-validator'
+    #       overrideValues: 'app.container.image=prasantabarik/offer-validator-service:$(Build.BuildId)'
+    #       valueFile: 'helmcharts/s/offer-validator.yaml'
+    #   condition: eq(variables['Build.DefinitionName'], 'offer-validator-service_ci')
+    # - task: HelmDeploy@0
+    #   displayName: 'helm upgrade store-cluster'
+    #   inputs:
+    #       connectionType: 'Kubernetes Service Connection'
+    #       kubernetesServiceConnection: 'com-mvp-aks'
+    #       command: upgrade
+    #       chartType: FilePath
+    #       chartPath: helmcharts/s/app
+    #       releaseName: 'store-cluster'
+    #       overrideValues: 'app.container.image=prasantabarik/store-cluster-service:$(Build.BuildId)'
+    #       valueFile: 'helmcharts/s/store-cluster.yaml'
+    #   condition: eq(variables['Build.DefinitionName'], 'store-cluster-service_ci')
+    # - task: HelmDeploy@0
+    #   displayName: 'helm upgrade store-supplier'
+    #   inputs:
+    #       connectionType: 'Kubernetes Service Connection'
+    #       kubernetesServiceConnection: 'com-mvp-aks'
+    #       command: upgrade
+    #       chartType: FilePath
+    #       chartPath: helmcharts/s/app
+    #       releaseName: 'store-supplier'
+    #       overrideValues: 'app.container.image=prasantabarik/store-supplier-service:$(Build.BuildId)'
+    #       valueFile: 'helmcharts/s/store-supplier.yaml'
+    #   condition: eq(variables['Build.DefinitionName'], 'store-supplier-service_ci')
+    # - task: HelmDeploy@0
+    #   displayName: 'helm upgrade offer planning'
+    #   inputs:
+    #       connectionType: 'Kubernetes Service Connection'
+    #       kubernetesServiceConnection: 'com-mvp-aks'
+    #       command: upgrade
+    #       chartType: FilePath
+    #       chartPath: helmcharts/s/app
+    #       releaseName: 'offer-planning'
+    #       overrideValues: 'app.container.image=prasantabarik/offer-planning-service:$(Build.BuildId)'
+    #       valueFile: 'helmcharts/s/offer-planning.yaml'
+    #   condition: eq(variables['Build.DefinitionName'], 'offer-planning-service_ci')
+
+    # - task: HelmDeploy@0
+    #   displayName: 'helm upgrade offer planning service'
+    #   inputs:
+    #     connectionType: 'Kubernetes Service Connection'
+    #     kubernetesServiceConnection: 'com-mvp-aks'
+    #     command: upgrade
+    #     chartType: FilePath
+    #     chartPath: helmcharts/s/service
+    #     releaseName: 'offer-planning-service-service'
+    #     valueFile: 'helmcharts/s/offer-planning-service.yaml'
+    #   condition: and(eq(variables['Build.DefinitionName'], 'offer-planning-service_ci'), eq(variables['canary'], 'true'))
+
+    # - task: HelmDeploy@0
+    #   displayName: 'helm upgrade offer planning v1'
+    #   inputs:
+    #     connectionType: 'Kubernetes Service Connection'
+    #     kubernetesServiceConnection: 'com-mvp-aks'
+    #     command: upgrade
+    #     chartType: FilePath
+    #     chartPath: helmcharts/s/app
+    #     releaseName: 'offer-planning-service-v1'
+    #     overrideValues: 'app.container.image=prasantabarik/offer-planning-service:$(Build.BuildId),app.version=v1'
+    #     valueFile: 'helmcharts/s/offer-planning-service.yaml'
+    #   condition: and(eq(variables['Build.DefinitionName'], 'offer-planning-service_ci'), eq(variables['canary'], 'true'), or( eq(variables['offerplanningv1'], 0), eq(variables['offerplanningv1'], 100) ) )
+
+    # - task: HelmDeploy@0
+    #   displayName: 'helm upgrade offer planning v2'
+    #   inputs:
+    #     connectionType: 'Kubernetes Service Connection'
+    #     kubernetesServiceConnection: 'com-mvp-aks'
+    #     command: upgrade
+    #     chartType: FilePath
+    #     chartPath: helmcharts/s/app
+    #     releaseName: 'offer-planning-service-v2'
+    #     overrideValues: 'app.container.image=prasantabarik/offer-planning-service:$(Build.BuildId),app.version=v2'
+    #     valueFile: 'helmcharts/s/offer-planning-service.yaml'
+    #   condition: and(eq(variables['Build.DefinitionName'], 'offer-planning-service_ci'), eq(variables['canary'], 'true'))
+
+    - task: HelmDeploy@0
+      displayName: 'helm upgrade service'
+      inputs:
+        connectionType: 'Kubernetes Service Connection'
+        kubernetesServiceConnection: 'com-mvp-aks'
+        command: upgrade
+        chartType: FilePath
+        chartPath: helmcharts/s/service
+        #releaseName: 'kotlin-service-template-service'
+        releaseName: $(servicereleasename)
+        #valueFile: 'helmcharts/s/kotlin-service-template.yaml'
+        valueFile: 'helmcharts/s/$(application).yaml'
+      #condition: and(eq(variables['Build.DefinitionName'], 'Kotlin-service-template_ci'), eq(variables['canary'], 'true'))
+      condition: eq(variables['canary'], 'true')
+
+    - task: HelmDeploy@0
+      displayName: 'helm upgrade deployment v1'
+      inputs:
+        connectionType: 'Kubernetes Service Connection'
+        kubernetesServiceConnection: 'com-mvp-aks'
+        command: upgrade
+        chartType: FilePath
+        chartPath: helmcharts/s/app
+        #releaseName: 'kotlin-service-template-v1'
+        releaseName: $(v1deployreleasename)
+        overrideValues: 'app.container.image=prasantabarik/$(application):$(Build.BuildId),app.version=v1'
+        #valueFile: 'helmcharts/s/kotlin-service-template.yaml'
+        valueFile: 'helmcharts/s/$(application).yaml'
+      #condition: and(eq(variables['Build.DefinitionName'], 'Kotlin-service-template_ci'), eq(variables['canary'], 'true'), or( eq(variables['kotlinservicev1'], 0), eq(variables['kotlinservicev1'], 100) ) )
+      condition: and(eq(variables['canary'], 'true'), or( eq(variables['weightv1'], 0), eq(variables['weightv1'], 100) ) )
+
+    - task: HelmDeploy@0
+      displayName: 'helm upgrade deployment v2'
+      inputs:
+        connectionType: 'Kubernetes Service Connection'
+        kubernetesServiceConnection: 'com-mvp-aks'
+        command: upgrade
+        chartType: FilePath
+        chartPath: helmcharts/s/app
+        #releaseName: 'kotlin-service-template-v2'
+        releaseName: $(v2deployreleasename)
+        #overrideValues: 'app.container.image=prasantabarik/kotlin-service-template:$(Build.BuildId),app.version=v2'
+        overrideValues: 'app.container.image=prasantabarik/$(application):$(Build.BuildId),app.version=v2'
+        #valueFile: 'helmcharts/s/kotlin-service-template.yaml'
+        valueFile: 'helmcharts/s/$(application).yaml'
+      #condition: and(eq(variables['Build.DefinitionName'], 'Kotlin-service-template_ci'), eq(variables['canary'], 'true'))
+      condition: eq(variables['canary'], 'true')
+
+
+
+
+    # - task: HelmDeploy@0
+    #   displayName: 'helm upgrade offer planning'
+    #   inputs:
+    #       connectionType: 'Kubernetes Service Connection'
+    #       kubernetesServiceConnection: 'commerce-aks'
+    #       command: upgrade
+    #       chartType: FilePath
+    #       chartPath: helmcharts/s/app
+    #       releaseName: 'offer-planning'
+    #       overrideValues: 'app.container.image=prasantabarik/offer-planning-service_duplicate:$(Build.BuildId)'
+    #       valueFile: 'helmcharts/s/offer-planning-new.yaml'
+    #   condition: eq(variables['Build.DefinitionName'], 'offer-planning-service_duplicate_ci')
+    # - task: HelmDeploy@0
+    #   displayName: 'helm upgrade retail item price'
+    #   inputs:
+    #       connectionType: 'Kubernetes Service Connection'
+    #       kubernetesServiceConnection: 'com-mvp-aks'
+    #       command: upgrade
+    #       chartType: FilePath
+    #       chartPath: helmcharts/s/app
+    #       releaseName: 'retail-item-price'
+    #       overrideValues: 'app.container.image=prasantabarik/retail-item-price-service:$(Build.BuildId)'
+    #       valueFile: 'helmcharts/s/retail-item-price.yaml'
+    #   condition: eq(variables['Build.DefinitionName'], 'retail-item-price-service_ci')
+
+    # - task: HelmDeploy@0
+    #   displayName: 'helm upgrade istioingress for offer-planning'
+    #   inputs:
+    #     connectionType: 'Kubernetes Service Connection'
+    #     kubernetesServiceConnection: 'com-mvp-aks'
+    #     command: upgrade
+    #     chartType: FilePath
+    #     chartPath: helmcharts/s/istioingress
+    #     releaseName: 'ingress'
+    #     overrideValues: 'istio.app.offerplanning.weightv1=$(offerplanningv1),istio.app.offerplanning.weightv2=$(offerplanningv2)'
+    #     arguments: '--reuse-values'
+    #   condition: and(eq(variables['Build.DefinitionName'], 'offer-planning-service_ci'), eq(variables['canary'], 'true'))
+
+    - task: HelmDeploy@0
+      displayName: 'helm upgrade istioingress'
+      inputs:
+        connectionType: 'Kubernetes Service Connection'
+        kubernetesServiceConnection: 'com-mvp-aks'
+        command: upgrade
+        chartType: FilePath
+        chartPath: helmcharts/s/istioingress
+        releaseName: 'ingress'
+        #overrideValues: 'istio.app.kotlinservice.weightv1=$(kotlinservicev1),istio.app.kotlinservice.weightv2=$(kotlinservicev2)'
+        overrideValues: 'istio.app.$(istiokey).weightv1=$(weightv1),istio.app.$(istiokey).weightv2=$(weightv2)'
+        arguments: '--reuse-values'
+      #condition: and(eq(variables['Build.DefinitionName'], 'Kotlin-service-template_ci'), eq(variables['canary'], 'true'))
+      condition: eq(variables['canary'], 'true')
+
+    # - task: HelmDeploy@0
+    #   displayName: 'helm upgrade kotlin service template'
+    #   inputs:
+    #       connectionType: 'Kubernetes Service Connection'
+    #       kubernetesServiceConnection: 'commerce-aks'
+    #       command: upgrade
+    #       chartType: FilePath
+    #       chartPath: helmcharts/s/app
+    #       releaseName: 'kotlin-service-template'
+    #       overrideValues: 'app.container.image=prasantabarik/kotlin-service-template:$(Build.BuildId)'
+    #       valueFile: 'helmcharts/s/kotlin-service-template-lb.yaml'
+    #   condition: eq(variables['Build.DefinitionName'], 'Kotlin-service-template_ci')
+    # - task: HelmDeploy@0
+    #   displayName: 'helm upgrade retail item'
+    #   inputs:
+    #       connectionType: 'Kubernetes Service Connection'
+    #       kubernetesServiceConnection: 'com-mvp-aks'
+    #       command: upgrade
+    #       chartType: FilePath
+    #       chartPath: helmcharts/s/app
+    #       releaseName: 'retail-item'
+    #       overrideValues: 'app.container.image=WeEuS01DevAkscn01.azurecr.io/retail-item-service:$(Build.BuildId)'
+    #       valueFile: 'helmcharts/s/retail-item.yaml'
+    # - task: Maven@3
+    #   displayName: "Maven with Sonar Analysis"
+    #   inputs:
+    #    mavenPomFile: 'pom.xml'
+    #    mavenOptions: '-Xmx3072m'
+    #    codeCoverageToolOption: cobertura
+    #    javaHomeOption: 'JDKVersion'
+    #    jdkVersionOption: '1.8'
+    #    jdkArchitectureOption: 'x64'
+    #    goals: 'gatling:test'
+    # - task: Maven@3
+    #   displayName: "Maven with Sonar Analysis"
+    #   inputs:
+    #    mavenPomFile: 'pom.xml'
+    #    mavenOptions: '-Xmx3072m'
+    #    codeCoverageToolOption: cobertura
+    #    javaHomeOption: 'JDKVersion'
+    #    jdkVersionOption: '1.8'
+    #    jdkArchitectureOption: 'x64'
+    #    goals: 'test'

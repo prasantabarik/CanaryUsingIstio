@@ -1,0 +1,200 @@
+{{- if .Values.istio.enabled -}}
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: {{ .Values.istio.gateway }}
+  namespace: dev
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  - port:
+      number: 80
+      name: http
+      protocol: HTTP
+    hosts:
+    - "*"
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: istio-virtual-services
+  namespace: dev
+spec:
+  hosts:
+  - "*"
+  gateways:
+  - http-gateway
+  http:
+    - match:
+        - uri:
+            prefix: /retailitemprice
+      route:
+        - destination:
+            host: retail-item-price
+            port:
+              number: 8095
+    - match:
+        - uri:
+            prefix: /offerplanning
+      route:
+        - destination:
+            host: offer-planning-service
+            subset: v1
+            port:
+              number: 8094
+          weight: {{ .Values.istio.app.offerplanning.weightv1 }}
+        - destination:
+            host: offer-planning-service
+            subset: v2
+            port:
+              number: 8094
+          weight: {{ .Values.istio.app.offerplanning.weightv2 }}
+    - match:
+        - uri:
+            prefix: /retailitem
+      route:
+        - destination:
+            host: retail-item
+            port:
+              number: 8092
+    - match:
+        - uri:
+            prefix: /servicetemplate
+      route:
+        - destination:
+            host: kotlin-service-template
+            subset: v1
+            port:
+              number: 8097
+          weight: {{ .Values.istio.app.kotlinservice.weightv1 }}
+        - destination:
+            host: kotlin-service-template
+            subset: v2
+            port:
+              number: 8097
+          weight: {{ .Values.istio.app.kotlinservice.weightv2 }}
+    - match:
+        - uri:
+            prefix: /offervalidator
+      route:
+        - destination:
+            host: offer-validator-service
+            subset: v1
+            port:
+              number: 8091
+          weight: {{ .Values.istio.app.offervalidator.weightv1 }}
+        - destination:
+            host: offer-validator-service
+            subset: v2
+            port:
+              number: 8091
+          weight: {{ .Values.istio.app.offervalidator.weightv2 }}
+    - match:
+        - uri:
+            prefix: /storecluster
+      route:
+        - destination:
+            host: store-cluster-service
+            subset: v1
+            port:
+              number: 8093
+          weight: {{ .Values.istio.app.storecluster.weightv1 }}
+        - destination:
+            host: store-cluster-service
+            subset: v2
+            port:
+              number: 8093
+          weight: {{ .Values.istio.app.storecluster.weightv2 }}
+    - match:
+        - uri:
+            prefix: /storesupplier
+      route:
+        - destination:
+            host: store-supplier-service
+            subset: v1
+            port:
+              number: 8096
+          weight: {{ .Values.istio.app.storesupplier.weightv1 }}
+        - destination:
+            host: store-supplier-service
+            subset: v2
+            port:
+              number: 8096
+          weight: {{ .Values.istio.app.storesupplier.weightv2 }}
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: offer-planning-service
+  namespace: dev
+spec:
+  host: offer-planning-service
+  subsets:
+    - name: v1
+      labels:
+        version: v1
+    - name: v2
+      labels:
+        version: v2
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: kotlin-service-template
+  namespace: dev
+spec:
+  host: kotlin-service-template
+  subsets:
+    - name: v1
+      labels:
+        version: v1
+    - name: v2
+      labels:
+        version: v2
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: offer-validator-service
+  namespace: dev
+spec:
+  host: offer-validator-service
+  subsets:
+    - name: v1
+      labels:
+        version: v1
+    - name: v2
+      labels:
+        version: v2
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: store-cluster-service
+  namespace: dev
+spec:
+  host: store-cluster-service
+  subsets:
+    - name: v1
+      labels:
+        version: v1
+    - name: v2
+      labels:
+        version: v2
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: store-supplier-service
+  namespace: dev
+spec:
+  host: store-supplier-service
+  subsets:
+    - name: v1
+      labels:
+        version: v1
+    - name: v2
+      labels:
+        version: v2
+{{- end -}}

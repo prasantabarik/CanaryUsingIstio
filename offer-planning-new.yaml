@@ -1,0 +1,11 @@
+app:
+  name: offer-planning
+  group: offer-planning
+  namespace: dev
+  replicaCount: 1
+  container:
+    image: prasantabarik/offer-planning-service_duplicate:12
+    port: 8094
+  service:
+    type: LoadBalancer
+    port: 8094

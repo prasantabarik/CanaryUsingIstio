@@ -1,0 +1,8 @@
+ingress:
+  namespace: debjyoti
+  hosts:
+    paths:
+      - path: /debjyoti/app
+        backend:  
+          serviceName: app-pipeline-332488
+          servicePort: 8090

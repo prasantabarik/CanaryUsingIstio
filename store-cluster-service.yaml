@@ -1,0 +1,12 @@
+app:
+  name: store-cluster-service
+  group: store-cluster-service
+  namespace: dev
+  replicaCount: 1
+  container:
+    image: prasantabarik/store-cluster-service:12
+    port: 8093
+  service:
+    type: ClusterIP
+    port: 8093
+  version: v1

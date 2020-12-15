@@ -1,0 +1,10 @@
+app:
+  name: retail-item-price
+  group: retail-item-price
+  namespace: dev
+  container:
+    image: WeEuS01DevAkscn01.azurecr.io/retail-item-price-service:10
+    port: 8095
+  service:
+    type: ClusterIP
+    port: 8095

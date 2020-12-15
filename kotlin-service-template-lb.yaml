@@ -1,0 +1,11 @@
+app:
+  name: kotlin-service-template
+  group: kotlin-service-template
+  namespace: dev
+  replicaCount: 2
+  container:
+    image: prasantabarik/kotlin-service-template:12
+    port: 8097
+  service:
+    type: LoadBalancer
+    port: 8097

@@ -1,0 +1,12 @@
+app:
+  name: offer-planning-service
+  group: offer-planning-service
+  namespace: dev
+  replicaCount: 2
+  container:
+    image: prasantabarik/offer-planning-service:12
+    port: 8094
+  service:
+    type: ClusterIP
+    port: 8094
+  version: v1

@@ -1,0 +1,12 @@
+app:
+  name: offer-validator-service
+  group: offer-validator-service
+  namespace: dev
+  replicaCount: 1
+  container:
+    image: prasantabarik/offer-validator-service:13
+    port: 8091
+  service:
+    type: ClusterIP
+    port: 8091
+  version: v1
